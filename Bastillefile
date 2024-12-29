@@ -1,0 +1,12 @@
+ARG v_jdk=17
+
+# install required packages
+PKG wazuh-server
+
+# copy files
+CP etc /
+
+CMD sed -e "s,%%SERVER_IP%%,${JAIL_IP},g" -i "" /etc/hosts
+
+# enable and start service
+

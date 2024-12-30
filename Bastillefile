@@ -1,13 +1,30 @@
+ARG v_jdk=17
+
 # install required packages
 PKG wazuh-server
 
 # copy files
+CP usr /
 CP var /
 
 CMD cp /etc/localtime /var/ossec/etc
-CMD cp /usr/local/etc/wazuh-server/filebeat.yml /usr/local/etc/beats/
-CMD cp /usr/local/etc/wazuh-server/logstash.conf /usr/local/etc/logstash/
+CMD openssl req -x509 -batch -nodes -days 365 -newkey rsa:2048 -subj "/C=US/ST=California/CN=Wazuh/" -keyout /var/ossec/etc/sslmanager.key -out /var/ossec/etc/sslmanager.cert
+CMD chmod 640 /var/ossec/etc/sslmanager.key
+CMD chmod 640 /var/ossec/etc/sslmanager.cert
 CMD cp /usr/local/etc/wazuh-server/wazuh-template.json /usr/local/etc/logstash/
+CMD sed -e "s,%%SERVER_IP%%,${JAIL_IP},g" -i "" /usr/local/etc/beats/filebeat.yml
+CMD sed -e "s,%%SERVER_IP%%,${JAIL_IP},g" -i "" /usr/local/etc/logstash/logstash.conf
+CMD cd /usr/local/logstash/bin; sh -c 'JAVA_HOME=/usr/local/openjdk${v_jdk} ./logstash-plugin install logstash-output-opensearch'
+
+#CMD cd /root/; fetch "https://people.freebsd.org/~acm/ports/wazuh/wazuh-gen-certs.tar.gz"
+#CMD cd /root/; tar xvfz wazuh-gen-certs.tar.gz
+#CMD echo 'dashboard_ip="${JAIL_IP}"' > /root/wazuh-gen-certs/dashboard.lst
+#CMD echo 'indexer1_ip="${JAIL_IP}"' > /root/wazuh-gen-certs/indexer.lst
+#CMD echo 'server1_ip="${JAIL_IP}"' > /root/wazuh-gen-certs/server.lst
+#CMD cd /root/wazuh-gen-certs; echo y | sh gen-certs.sh
+
+CMD chmod 660 /var/ossec/etc/ossec.conf
+CMD chown root:wazuh /var/ossec/etc/ossec.conf
 
 # enable and start service
 SYSRC logstash_enable=YES
@@ -17,3 +34,7 @@ SYSRC wazuh_manager_enable=YES
 SERVICE logstash start
 SERVICE filebeat start
 SERVICE wazuh-manager start
+
+RDR udp 1514 1514
+RDR tcp 1515 1515
+RDR tcp 55000 55000

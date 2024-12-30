@@ -1,12 +1,19 @@
-ARG v_jdk=17
-
 # install required packages
 PKG wazuh-server
 
 # copy files
-CP etc /
+CP var /
 
-CMD sed -e "s,%%SERVER_IP%%,${JAIL_IP},g" -i "" /etc/hosts
+CMD cp /etc/localtime /var/ossec/etc
+CMD cp /usr/local/etc/wazuh-server/filebeat.yml /usr/local/etc/beats/
+CMD cp /usr/local/etc/wazuh-server/logstash.conf /usr/local/etc/logstash/
+CMD cp /usr/local/etc/wazuh-server/wazuh-template.json /usr/local/etc/logstash/
 
 # enable and start service
+SYSRC logstash_enable=YES
+SYSRC filebeat_enable=YES
+SYSRC wazuh_manager_enable=YES
 
+SERVICE logstash start
+SERVICE filebeat start
+SERVICE wazuh-manager start

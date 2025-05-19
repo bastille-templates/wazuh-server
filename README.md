@@ -3,10 +3,7 @@ The Wazuh server analyzes the data received from the Wazuh agents, triggering al
 
 ## Now apply template to container
 ```sh
-bastille create wazuh 14.1-RELEASE YourIP-Bastille
-
-bastille bootstrap https://github.com/bastille-templates/wazuh-server
-bastille template wazuh bastille-templates/wazuh-server
+pkg info -D -x wazuh-server | less
 ```
 Edii file /usr/local/bastille/jails/wazuh/fstab
 ```sh
